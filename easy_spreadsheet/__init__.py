@@ -10,12 +10,39 @@ import importlib
 import pandas as pd
 from pprint import pprint
 from oauth2client.service_account import ServiceAccountCredentials
+import numpy as np
+class NumpyEncoder(json.JSONEncoder):
+    """ Custom encoder for numpy data types """
+    def default(self, obj):
+        if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
+                            np.int16, np.int32, np.int64, np.uint8,
+                            np.uint16, np.uint32, np.uint64)):
 
+            return int(obj)
+
+        elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
+            return float(obj)
+
+        elif isinstance(obj, (np.complex_, np.complex64, np.complex128)):
+            return {'real': obj.real, 'imag': obj.imag}
+
+        elif isinstance(obj, (np.ndarray,)):
+            return obj.tolist()
+
+        elif isinstance(obj, (np.bool_)):
+            return bool(obj)
+
+        elif isinstance(obj, (np.void)): 
+            return None
+
+        return json.JSONEncoder.default(self, obj)
 
 class EasySpreadsheet():
     
-    def __init__(self, auth_json: dict, spreadsheet_id: str, sheet_name: str):
-
+    def __init__(self, auth_json: dict, spreadsheet_id: str, sheet_name: str = ""):
+        """
+        Easy Spreadsheet
+        """
 
         self.table = None
 
@@ -24,26 +51,34 @@ class EasySpreadsheet():
         self._doc = self._get_doc(auth_json, spreadsheet_id)
         self._sheet_name = sheet_name
         self._cloudsheet= None
-
-        self._load()
+        
+        if sheet_name:
+            self._load()
     
     def select(self):
         return self.table
     
-    def push(self):
-        
+    def push(self, cell_indexes=[]):
+        cell_indexes = set(cell_indexes)
+
         cell_list = []
-        for index, row in self.table.iterrows():
-            values = self._make_sheet_row(row)
-            
+        
+        for index, row in enumerate(json.loads(json.dumps(self.table.to_dict(orient='records'), ensure_ascii=False, cls=NumpyEncoder))):
+            values = self._make_sheet_row(row.values())
+
             for value_index, value in enumerate(values):
+                if cell_indexes and (index + 1, value_index + 1) not in cell_indexes:
+                    continue
+
                 cell = gspread.models.Cell(index + 1, value_index + 1)
                 cell.value = value
                 cell_list.append(cell)
 
-        self._cloudsheet.clear()
-        self._cloudsheet.update_cells(cell_list)
+        if len(cell_list):
+            self._cloudsheet.update_cells(cell_list)
         
+
+
     def format(self, start_column, start_index, end_column, end_index, cell_format):
         
         range_name = self._spread_order[start_column] + str(start_index + 1) + ":" + \
@@ -90,32 +125,29 @@ class EasySpreadsheet():
 
         self.table = pd.DataFrame(rows)
         
-
-    def _convert_to_str(self, value):
+    def _parse(self, value):
         if type(value) is list or type(value) is dict:
-            v = json.dumps(value, ensure_ascii=False)
+            v = value
         else:
-            v = str(value)
+            try:
+                v = json.loads(value)
+            except:
+                v = value
 
         return v
 
-    def _parse(self, value):
-        try:
-            if type(value) is list or type(value) is dict:
-                v = value
-            elif len(value) != 0 and (value[0] == "{" or value[0] == "["):
-                v = json.loads(value)
-            else:
-                v = str(value)
-        except:
-            v = str(value)
+    def _convert(self, value):
+        if type(value) is list or type(value) is dict:
+            v = json.dumps(value, ensure_ascii=False)
+        else:
+            v = value
 
         return v
 
     def _make_sheet_row(self, row):
         temp = []
         for p in row:
-            v = self._convert_to_str(p)
+            v = self._convert(p)
 
             temp.append(v)
 
