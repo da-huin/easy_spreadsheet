@@ -48,14 +48,19 @@ class EasySpreadsheet():
         self.table = None
 
         self._spread_order = list(self._allcombinations(
-            'ABCDEFGHIJKLMNOPQRSTVWXYZ', minlen=1, maxlen=2))
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ', minlen=1, maxlen=2))
         self._doc = self._get_doc(auth_json, spreadsheet_id)
         self._sheet_name = sheet_name
         self._cloudsheet= None
         
         if sheet_name:
             self._load()
-    
+
+    @property
+    def doc(self):
+        return self._doc
+        
+
     def select(self):
         return self.table
     
