@@ -11,6 +11,7 @@ import pandas as pd
 from pprint import pprint
 from oauth2client.service_account import ServiceAccountCredentials
 import numpy as np
+
 class NumpyEncoder(json.JSONEncoder):
     """ Custom encoder for numpy data types """
     def default(self, obj):
@@ -75,7 +76,7 @@ class EasySpreadsheet():
                 cell_list.append(cell)
 
         if len(cell_list):
-            self._cloudsheet.update_cells(cell_list)
+            self._cloudsheet.update_cells(cell_list, value_input_option='USER_ENTERED')
         
 
 
@@ -113,7 +114,7 @@ class EasySpreadsheet():
     def _load(self):
 
         self._cloudsheet = self._doc.worksheet(self._sheet_name)
-        records = self._cloudsheet.get_all_values()
+        records = self._cloudsheet.get_all_values('FORMULA')
         rows = []
         for row in records:
             temp = []
