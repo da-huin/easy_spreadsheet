@@ -39,8 +39,8 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 class EasySpreadsheet():
-    
-    def __init__(self, auth_json: dict, spreadsheet_id: str, sheet_name: str = ""):
+
+    def __init__(self, auth_json: dict, spreadsheet_id: str, sheet_name: str = "", value_render_option='FORMULA'):
         """
         Easy Spreadsheet
         """
@@ -52,7 +52,7 @@ class EasySpreadsheet():
         self._doc = self._get_doc(auth_json, spreadsheet_id)
         self._sheet_name = sheet_name
         self._cloudsheet= None
-        
+        self._value_render_option = value_render_option
         if sheet_name:
             self._load()
 
@@ -119,7 +119,7 @@ class EasySpreadsheet():
     def _load(self):
 
         self._cloudsheet = self._doc.worksheet(self._sheet_name)
-        records = self._cloudsheet.get_all_values('FORMULA')
+        records = self._cloudsheet.get_all_values(self._value_render_option)
         rows = []
         for row in records:
             temp = []
