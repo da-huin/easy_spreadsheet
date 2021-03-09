@@ -6,7 +6,7 @@ import io
 from setuptools import find_packages, setup
 
 setup(name='easy_spreadsheet',
-      version='1.2.17',
+      version='1.2.25',
       description='Easy use Google Spreadsheet in Python.',
       long_description="Please refer to the https://github.com/da-huin/easy_spreadsheet",
       long_description_content_type="text/markdown",

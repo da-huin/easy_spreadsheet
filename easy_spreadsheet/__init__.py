@@ -1,3 +1,6 @@
+"""
+스프레드시트 인증, 시트 데이터프레임으로 가져오기 등 스프레드시트와 관련된 함수들이 있습니다.
+"""
 import time
 import logging
 import base64
@@ -18,7 +21,6 @@ class NumpyEncoder(json.JSONEncoder):
         if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
                             np.int16, np.int32, np.int64, np.uint8,
                             np.uint16, np.uint32, np.uint64)):
-
             return int(obj)
 
         elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
@@ -38,38 +40,22 @@ class NumpyEncoder(json.JSONEncoder):
 
         return json.JSONEncoder.default(self, obj)
 
-class EasySpreadsheet():
+class EasyWorksheet():
 
-    def __init__(self, auth_json: dict, spreadsheet_id: str, sheet_name: str = "", value_render_option='FORMULA'):
-        """
-        Easy Spreadsheet
-        """
-
-        self.table = None
-
-        self._spread_order = list(self._allcombinations(
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZ', minlen=1, maxlen=2))
-        self._doc = self._get_doc(auth_json, spreadsheet_id)
-        self._sheet_name = sheet_name
-        self._cloudsheet= None
-        self._value_render_option = value_render_option
-        if sheet_name:
-            self._load()
+    def __init__(self, worksheet, load_render_option='FORMULA'):
+        self._worksheet = worksheet
+        self._table = self._load_table(load_render_option)
 
     @property
-    def doc(self):
-        return self._doc
+    def table():
+        return self._table
         
-
-    def select(self):
-        return self.table
-    
     def push(self, cell_indexes=[]):
         cell_indexes = set(cell_indexes)
 
         cell_list = []
-        
-        for index, row in enumerate(json.loads(json.dumps(self.table.to_dict(orient='records'), ensure_ascii=False, cls=NumpyEncoder))):
+
+        for index, row in enumerate(json.loads(json.dumps(self._table.to_dict(orient='records'), ensure_ascii=False, cls=NumpyEncoder))):
             values = self._make_sheet_row(row.values())
 
             for value_index, value in enumerate(values):
@@ -81,56 +67,21 @@ class EasySpreadsheet():
                 cell_list.append(cell)
 
         if len(cell_list):
-            self._cloudsheet.update_cells(cell_list, value_input_option='USER_ENTERED')
-        
+            self._worksheet.update_cells(cell_list, value_input_option='USER_ENTERED')
 
-
-    def format(self, start_column, start_index, end_column, end_index, cell_format):
-        
-        range_name = self._spread_order[start_column] + str(start_index + 1) + ":" + \
-                    self._spread_order[end_column] + str(end_index + 1)
-
-        return self._cloudsheet.format(range_name, cell_format)
-
-    def load_from_another_sheet(self, sheet):
-        self.table = sheet.table.copy()
-
-    def _allcombinations(self, alphabet, minlen=1, maxlen=None):
+    @staticmethod
+    def allcombinations(self, alphabet, minlen=1, maxlen=None):
         thislen = minlen
         while maxlen is None or thislen <= maxlen:
             for prod in itertools.product(alphabet, repeat=thislen):
                 yield ''.join(prod)
             thislen += 1
 
-    def _get_doc(self, auth_json, spreadsheet_id):
-        scopes = [
-            'https://www.googleapis.com/auth/spreadsheets',
-            'https://www.googleapis.com/auth/drive',
-            'https://spreadsheets.google.com/feeds',
-        ]
-        credentials = ServiceAccountCredentials.from_json_keyfile_dict(
-            auth_json, scopes)
-        gc = gspread.authorize(credentials)
-        spreadsheet_url = f'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit#gid=0'
-        doc = gc.open_by_url(spreadsheet_url)
+    @staticmethod
+    def get_label_from_indexes(row_index, col_index):
+        return f'{spread_order[col_index]}{row_index + 1}'
 
-        return doc
 
-    def _load(self):
-
-        self._cloudsheet = self._doc.worksheet(self._sheet_name)
-        records = self._cloudsheet.get_all_values(self._value_render_option)
-        rows = []
-        for row in records:
-            temp = []
-            for p in row:
-                v = self._parse(p)
-                temp.append(v)
-
-            rows.append(temp)
-
-        self.table = pd.DataFrame(rows)
-        
     def _parse(self, value):
         if type(value) is list or type(value) is dict:
             v = value
@@ -141,7 +92,7 @@ class EasySpreadsheet():
                 v = value
 
         return v
-
+        
     def _convert(self, value):
         if type(value) is list or type(value) is dict:
             v = json.dumps(value, ensure_ascii=False)
@@ -158,3 +109,58 @@ class EasySpreadsheet():
             temp.append(v)
 
         return temp
+            
+    def _load_table(self, load_render_option):
+
+        records = self._worksheet.get_all_values(load_render_option)
+
+        rows = []
+        for row in records:
+            temp = []
+            for p in row:
+                v = self._parse(p)
+                temp.append(v)
+
+            rows.append(temp)
+
+        return pd.DataFrame(rows)
+
+
+class EasySpreadsheet():
+
+    def __init__(self, auth_json, spreadsheet_id):
+        self._spread_order = list(EasySpreadsheet.allcombinations(
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ', minlen=1, maxlen=3))
+        self._auth_json = auth_json
+        self._sheet = self._get_sheet(spreadsheet_id)
+
+    @property
+    def sheet():
+        return self._sheet
+
+    def _get_sheet(self, spreadsheet_id):
+        
+        scopes = [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive',
+            'https://spreadsheets.google.com/feeds',
+        ]
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+            self._auth_json, scopes)
+        gc = gspread.authorize(credentials)
+        spreadsheet_url = f'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit#gid=0'
+
+        return gc.open_by_url(spreadsheet_url)
+
+    def get_worksheet(worksheet_name):
+        return EasyWorksheet(self._sheet.worksheet(worksheet_name))
+
+
+    def format(self, start_column, start_index, end_column, end_index, cell_format):
+        
+        range_name = self._spread_order[start_column] + str(start_index + 1) + ":" + \
+                    self._spread_order[end_column] + str(end_index + 1)
+
+        return self._cloudsheet.format(range_name, cell_format)
+
+
