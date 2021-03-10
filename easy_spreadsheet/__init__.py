@@ -50,6 +50,11 @@ class EasyWorksheet():
     def table(self):
         return self._table
 
+    @property
+    def worksheet(self):
+        return self._worksheet
+
+
     def set_table(self, table):
         self._table = table
         
