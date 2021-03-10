@@ -69,13 +69,7 @@ class EasyWorksheet():
         if len(cell_list):
             self._worksheet.update_cells(cell_list, value_input_option='USER_ENTERED')
 
-    @staticmethod
-    def allcombinations(self, alphabet, minlen=1, maxlen=None):
-        thislen = minlen
-        while maxlen is None or thislen <= maxlen:
-            for prod in itertools.product(alphabet, repeat=thislen):
-                yield ''.join(prod)
-            thislen += 1
+
 
     @staticmethod
     def get_label_from_indexes(row_index, col_index):
@@ -163,4 +157,10 @@ class EasySpreadsheet():
 
         return self._cloudsheet.format(range_name, cell_format)
 
-
+    @staticmethod
+    def allcombinations(self, alphabet, minlen=1, maxlen=None):
+        thislen = minlen
+        while maxlen is None or thislen <= maxlen:
+            for prod in itertools.product(alphabet, repeat=thislen):
+                yield ''.join(prod)
+            thislen += 1
