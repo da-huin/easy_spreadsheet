@@ -149,7 +149,17 @@ class EasySpreadsheet():
     def get_worksheet(self, worksheet_name):
         return EasyWorksheet(self._sheet.worksheet(worksheet_name))
 
+    def get_worksheet_titles(self):
+        return [worksheet.title for worksheet in self._sheet.worksheets()]
 
+
+    def delete_worksheet(self, worksheet_name):
+        for worksheet in self._sheet.worksheets():
+            if worksheet.title == worksheet_name:
+                return self._sheet.del_worksheet(worksheet)
+
+        return None
+            
     @staticmethod
     def allcombinations(alphabet, minlen=1, maxlen=None):
         thislen = minlen

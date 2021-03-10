@@ -8,4 +8,8 @@ def test_default():
     spreadsheet_id = '13Wz9X9-4ZUGoOZ_7KYv5nLfotWNV6gyRCOsCe4KuYDo'
     handler = easy_spreadsheet.EasySpreadsheet(sheet_key, spreadsheet_id)
     sheet = handler.get_worksheet('Table History')
-    print(sheet.push())
+    # print(sheet.push())
+
+    # print(handler.get_worksheet_titles())
+    # print(handler.delete_worksheet('시트4'))
+    
