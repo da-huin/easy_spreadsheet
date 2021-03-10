@@ -129,7 +129,7 @@ class EasySpreadsheet():
         self._sheet = self._get_sheet(spreadsheet_id)
 
     @property
-    def sheet():
+    def sheet(self):
         return self._sheet
 
     def _get_sheet(self, spreadsheet_id):
