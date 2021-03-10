@@ -146,12 +146,14 @@ class EasySpreadsheet():
 
         return gc.open_by_url(spreadsheet_url)
 
-    def get_worksheet(self, worksheet_name):
+    def get_easy_worksheet(self, worksheet_name):
         return EasyWorksheet(self._sheet.worksheet(worksheet_name))
+
+    def get_worksheet(self, worksheet_name):
+        return self._sheet.worksheet(worksheet_name)
 
     def get_worksheet_titles(self):
         return [worksheet.title for worksheet in self._sheet.worksheets()]
-
 
     def delete_worksheet(self, worksheet_name):
         for worksheet in self._sheet.worksheets():
