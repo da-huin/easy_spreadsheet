@@ -47,7 +47,7 @@ class EasyWorksheet():
         self._table = self._load_table(load_render_option)
 
     @property
-    def table():
+    def table(self):
         return self._table
         
     def push(self, cell_indexes=[]):
@@ -146,19 +146,12 @@ class EasySpreadsheet():
 
         return gc.open_by_url(spreadsheet_url)
 
-    def get_worksheet(worksheet_name):
+    def get_worksheet(self, worksheet_name):
         return EasyWorksheet(self._sheet.worksheet(worksheet_name))
 
 
-    def format(self, start_column, start_index, end_column, end_index, cell_format):
-        
-        range_name = self._spread_order[start_column] + str(start_index + 1) + ":" + \
-                    self._spread_order[end_column] + str(end_index + 1)
-
-        return self._cloudsheet.format(range_name, cell_format)
-
     @staticmethod
-    def allcombinations(self, alphabet, minlen=1, maxlen=None):
+    def allcombinations(alphabet, minlen=1, maxlen=None):
         thislen = minlen
         while maxlen is None or thislen <= maxlen:
             for prod in itertools.product(alphabet, repeat=thislen):
