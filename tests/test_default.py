@@ -13,3 +13,5 @@ def test_default():
     # print(handler.get_worksheet_titles())
     # print(handler.delete_worksheet('시트4'))
     
+    # handler.refresh()
+    # handler.reorder(['Table History', 'Default'])

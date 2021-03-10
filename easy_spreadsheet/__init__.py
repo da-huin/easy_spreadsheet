@@ -123,6 +123,7 @@ class EasyWorksheet():
         return pd.DataFrame(rows)
 
 
+
 class EasySpreadsheet():
 
     def __init__(self, auth_json, spreadsheet_id):
@@ -164,7 +165,22 @@ class EasySpreadsheet():
                 return self._sheet.del_worksheet(worksheet)
 
         return None
-            
+
+    def refresh(self):
+        for worksheet in self.sheet.worksheets():
+            handler = self.get_easy_worksheet(worksheet.title)
+            handler.push()
+        
+    def reorder(self, sheet_order):
+        worksheets_in_desired_order = []
+        for sheet_name in sheet_order:
+            for worksheet in self.sheet.worksheets():
+                if sheet_name == worksheet.title:
+                    worksheets_in_desired_order.append(worksheet)
+                    break
+
+        self.sheet.reorder_worksheets(worksheets_in_desired_order)
+
     @staticmethod
     def allcombinations(alphabet, minlen=1, maxlen=None):
         thislen = minlen
