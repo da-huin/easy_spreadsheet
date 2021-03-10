@@ -51,7 +51,7 @@ class EasyWorksheet():
         return self._table
 
     def set_table(self, table):
-        self.table = table
+        self._table = table
         
     def push(self, cell_indexes=[]):
         cell_indexes = set(cell_indexes)
