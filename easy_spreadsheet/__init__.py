@@ -49,6 +49,9 @@ class EasyWorksheet():
     @property
     def table(self):
         return self._table
+
+    def set_table(self, table):
+        self.table = table
         
     def push(self, cell_indexes=[]):
         cell_indexes = set(cell_indexes)
@@ -70,7 +73,7 @@ class EasyWorksheet():
             self._worksheet.update_cells(cell_list, value_input_option='USER_ENTERED')
 
 
-
+    
     @staticmethod
     def get_label_from_indexes(row_index, col_index):
         return f'{spread_order[col_index]}{row_index + 1}'
